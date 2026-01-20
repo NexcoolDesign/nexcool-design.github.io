@@ -1,0 +1,380 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>I2C、SPI、UART 详解 | Nexcool Design</title><meta name="author" content="Lee"><meta name="copyright" content="Lee"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="I2C、SPI、UART 通信协议详解 本文为 parlezvoustech 网站 的中文翻译文件  在嵌入式系统与电子设计中，I2C、SPI 与 UART 是最常见、最基础的三种串行通信协议。它们在速度、复杂度、连线方式以及应用场景上各有侧重。 本文将系统性地介绍三种协议的：  基本原理   通信流程   优缺点   典型应用场景   对比与选型建议   一、I2C 协议（Inter-Integ">
+<meta property="og:type" content="article">
+<meta property="og:title" content="I2C、SPI、UART 详解">
+<meta property="og:url" content="https://nexcooldesign.github.io/2026/01/20/917ba16ece48/index.html">
+<meta property="og:site_name" content="Nexcool Design">
+<meta property="og:description" content="I2C、SPI、UART 通信协议详解 本文为 parlezvoustech 网站 的中文翻译文件  在嵌入式系统与电子设计中，I2C、SPI 与 UART 是最常见、最基础的三种串行通信协议。它们在速度、复杂度、连线方式以及应用场景上各有侧重。 本文将系统性地介绍三种协议的：  基本原理   通信流程   优缺点   典型应用场景   对比与选型建议   一、I2C 协议（Inter-Integ">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://nexcooldesign.github.io/imgs/avatar.jpg">
+<meta property="article:published_time" content="2026-01-20T15:16:20.000Z">
+<meta property="article:modified_time" content="2026-01-20T15:30:55.943Z">
+<meta property="article:author" content="Lee">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://nexcooldesign.github.io/imgs/avatar.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "I2C、SPI、UART 详解",
+  "url": "https://nexcooldesign.github.io/2026/01/20/917ba16ece48/",
+  "image": "https://nexcooldesign.github.io/imgs/avatar.jpg",
+  "datePublished": "2026-01-20T15:16:20.000Z",
+  "dateModified": "2026-01-20T15:30:55.943Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Lee",
+      "url": "https://nexcooldesign.github.io"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/imgs/favicon.png"><link rel="canonical" href="https://nexcooldesign.github.io/2026/01/20/917ba16ece48/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'I2C、SPI、UART 详解',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div class="bg-animation" id="web_bg" style="background-image: url(/imgs/background.png);"></div><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/imgs/avatar.jpg" onerror="this.onerror=null;this.src='/imgs/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 全部文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/imgs/background.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">Nexcool Design</span></a><a class="nav-page-title" href="/"><span class="site-name">I2C、SPI、UART 详解</span><span class="site-name"><i class="fa-solid fa-circle-arrow-left"></i><span>  返回首页</span></span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 全部文章</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">I2C、SPI、UART 详解</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2026-01-20T15:16:20.000Z" title="发表于 2026-01-20 23:16:20">2026-01-20</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2026-01-20T15:30:55.943Z" title="更新于 2026-01-20 23:30:55">2026-01-20</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE/">通信协议</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="I2C、SPI、UART-通信协议详解"><a href="#I2C、SPI、UART-通信协议详解" class="headerlink" title="I2C、SPI、UART 通信协议详解"></a>I2C、SPI、UART 通信协议详解</h1><blockquote>
+<p>本文为 <a target="_blank" rel="noopener" href="https://www.parlezvoustech.com/en/comparaison-protocoles-communication-i2c-spi-uart/">parlezvoustech 网站</a> 的中文翻译文件</p>
+</blockquote>
+<p>在嵌入式系统与电子设计中，<strong>I2C、SPI 与 UART</strong> 是最常见、最基础的三种串行通信协议。它们在速度、复杂度、连线方式以及应用场景上各有侧重。</p>
+<p>本文将系统性地介绍三种协议的：</p>
+<ul>
+<li>基本原理  </li>
+<li>通信流程  </li>
+<li>优缺点  </li>
+<li>典型应用场景  </li>
+<li>对比与选型建议</li>
+</ul>
+<hr>
+<h2 id="一、I2C-协议（Inter-Integrated-Circuit）"><a href="#一、I2C-协议（Inter-Integrated-Circuit）" class="headerlink" title="一、I2C 协议（Inter-Integrated Circuit）"></a>一、I2C 协议（Inter-Integrated Circuit）</h2><h3 id="1-基本原理"><a href="#1-基本原理" class="headerlink" title="1. 基本原理"></a>1. 基本原理</h3><p>I²C 是一种 <strong>同步、双向、半双工</strong> 的串行通信协议，支持 <strong>多主多从架构</strong>。</p>
+<p>其主要特点如下：</p>
+<ul>
+<li>仅使用 <strong>两条信号线</strong><ul>
+<li><strong>SDA（Serial Data）</strong>：串行数据线</li>
+<li><strong>SCL（Serial Clock）</strong>：串行时钟线</li>
+</ul>
+</li>
+<li>所有通信 <strong>均由主设备发起</strong></li>
+<li>主设备之间、从设备之间 <strong>不能直接通信</strong></li>
+<li>通过 <strong>设备地址</strong> 区分不同从设备</li>
+</ul>
+<p><img src="/imgs/I2C%E3%80%81SPI%E3%80%81UART-%E8%AF%A6%E8%A7%A3.assets/i2c.gif" alt="I2C 原理示意图"></p>
+<hr>
+<h3 id="2-I2C-的读写流程"><a href="#2-I2C-的读写流程" class="headerlink" title="2. I2C 的读写流程"></a>2. I2C 的读写流程</h3><p>I2C 通信分为 <strong>读操作（Slave → Master）</strong> 和 <strong>写操作（Master → Slave）</strong>，二者流程相似但方向不同。</p>
+<hr>
+<h4 id="2-1-读操作（Slave-→-Master）"><a href="#2-1-读操作（Slave-→-Master）" class="headerlink" title="2.1 读操作（Slave → Master）"></a>2.1 读操作（Slave → Master）</h4><ol>
+<li><p><strong>START 条件</strong><br>主设备在 SCL 为高电平时，将 SDA 拉低，表示通信开始。</p>
+</li>
+<li><p><strong>从设备地址 + 读位（R&#x3D;1）</strong><br>主设备发送 7 位从地址，随后发送读控制位。</p>
+</li>
+<li><p><strong>应答信号（ACK &#x2F; NACK）</strong><br>从设备若准备就绪，则拉低 SDA 发送 ACK。</p>
+</li>
+<li><p><strong>从设备发送数据</strong><br>从设备按字节向主设备发送数据。</p>
+</li>
+<li><p><strong>主设备应答</strong>  </p>
+<ul>
+<li>ACK：继续接收数据  </li>
+<li>NACK：表示不再接收</li>
+</ul>
+</li>
+<li><p><strong>STOP 条件</strong><br>主设备在 SCL 为高电平时，将 SDA 从低拉高，通信结束。</p>
+</li>
+</ol>
+<hr>
+<h4 id="2-2-写操作（Master-→-Slave）"><a href="#2-2-写操作（Master-→-Slave）" class="headerlink" title="2.2 写操作（Master → Slave）"></a>2.2 写操作（Master → Slave）</h4><ol>
+<li><strong>START 条件</strong></li>
+<li><strong>从设备地址 + 写位（W&#x3D;0）</strong></li>
+<li><strong>从设备应答 ACK</strong></li>
+<li><strong>主设备发送数据</strong></li>
+<li><strong>从设备逐字节 ACK</strong></li>
+<li><strong>STOP 或 RESTART 条件</strong></li>
+</ol>
+<hr>
+<h3 id="3-I2C-的优缺点与应用"><a href="#3-I2C-的优缺点与应用" class="headerlink" title="3. I2C 的优缺点与应用"></a>3. I2C 的优缺点与应用</h3><h4 id="✅-优点"><a href="#✅-优点" class="headerlink" title="✅ 优点"></a>✅ 优点</h4><ul>
+<li>仅需 2 根信号线，<strong>引脚占用极低</strong></li>
+<li>支持多从设备</li>
+<li>硬件与软件实现相对简单</li>
+</ul>
+<h4 id="❌-缺点"><a href="#❌-缺点" class="headerlink" title="❌ 缺点"></a>❌ 缺点</h4><ul>
+<li>传输速率较低（相比 SPI）</li>
+<li>抗干扰能力有限，不适合长距离</li>
+<li>从设备数量增加后，管理复杂度上升</li>
+</ul>
+<h4 id="📌-典型应用"><a href="#📌-典型应用" class="headerlink" title="📌 典型应用"></a>📌 典型应用</h4><ul>
+<li>传感器（温度、压力、IMU）</li>
+<li>RTC（实时时钟）</li>
+<li>LCD &#x2F; OLED 显示屏</li>
+<li>电池管理、LED 控制器</li>
+</ul>
+<hr>
+<h2 id="二、SPI-协议（Serial-Peripheral-Interface）"><a href="#二、SPI-协议（Serial-Peripheral-Interface）" class="headerlink" title="二、SPI 协议（Serial Peripheral Interface）"></a>二、SPI 协议（Serial Peripheral Interface）</h2><h3 id="1-基本原理-1"><a href="#1-基本原理-1" class="headerlink" title="1. 基本原理"></a>1. 基本原理</h3><p>SPI 是一种 <strong>高速、同步、全双工</strong> 串行通信协议，以速度和效率著称。</p>
+<p>SPI 通常使用 <strong>4 根信号线</strong>：</p>
+<ul>
+<li><strong>MOSI</strong>（Master Out Slave In）</li>
+<li><strong>MISO</strong>（Master In Slave Out）</li>
+<li><strong>SCK</strong>（Serial Clock）</li>
+<li><strong>SS &#x2F; CS</strong>（Slave Select &#x2F; Chip Select）</li>
+</ul>
+<p><img src="/imgs/I2C%E3%80%81SPI%E3%80%81UART-%E8%AF%A6%E8%A7%A3.assets/spi.gif" alt="SPI 原理示意图"></p>
+<hr>
+<h3 id="2-SPI-通信流程"><a href="#2-SPI-通信流程" class="headerlink" title="2. SPI 通信流程"></a>2. SPI 通信流程</h3><ol>
+<li><p><strong>时钟产生</strong><br>主设备产生 SCK 时钟信号。</p>
+</li>
+<li><p><strong>从设备选择</strong><br>主设备将对应 CS 拉低，选中目标从设备。</p>
+</li>
+<li><p><strong>数据交换</strong>  </p>
+<ul>
+<li>主设备通过 MOSI 发送数据  </li>
+<li>从设备通过 MISO 同时返回数据</li>
+</ul>
+</li>
+<li><p><strong>全双工通信</strong><br>只要 CS 保持有效，双方即可持续高速交换数据。</p>
+</li>
+</ol>
+<hr>
+<h3 id="3-SPI-的优缺点与应用"><a href="#3-SPI-的优缺点与应用" class="headerlink" title="3. SPI 的优缺点与应用"></a>3. SPI 的优缺点与应用</h3><h4 id="✅-优点-1"><a href="#✅-优点-1" class="headerlink" title="✅ 优点"></a>✅ 优点</h4><ul>
+<li>极高的数据传输速率</li>
+<li>全双工通信</li>
+<li>协议简单、时序清晰</li>
+</ul>
+<h4 id="❌-缺点-1"><a href="#❌-缺点-1" class="headerlink" title="❌ 缺点"></a>❌ 缺点</h4><ul>
+<li>引脚占用多</li>
+<li>多从设备场景下 CS 管理复杂</li>
+<li>高速下对布线和 EMI 要求高</li>
+</ul>
+<h4 id="📌-典型应用-1"><a href="#📌-典型应用-1" class="headerlink" title="📌 典型应用"></a>📌 典型应用</h4><ul>
+<li>TFT &#x2F; LCD 显示屏</li>
+<li>SD &#x2F; Flash 存储器</li>
+<li>无线通信模块（NRF、ESP）</li>
+<li>高速 ADC &#x2F; DAC</li>
+</ul>
+<hr>
+<h2 id="三、UART-协议（Universal-Asynchronous-Receiver-Transmitter）"><a href="#三、UART-协议（Universal-Asynchronous-Receiver-Transmitter）" class="headerlink" title="三、UART 协议（Universal Asynchronous Receiver &#x2F; Transmitter）"></a>三、UART 协议（Universal Asynchronous Receiver &#x2F; Transmitter）</h2><h3 id="1-基本原理-2"><a href="#1-基本原理-2" class="headerlink" title="1. 基本原理"></a>1. 基本原理</h3><p>UART 是一种 <strong>异步串行通信协议</strong>，无需共享时钟，仅依赖双方约定的 <strong>波特率</strong>。</p>
+<p>仅使用两根信号线：</p>
+<ul>
+<li><strong>TX</strong>：发送</li>
+<li><strong>RX</strong>：接收</li>
+</ul>
+<p><img src="/imgs/I2C%E3%80%81SPI%E3%80%81UART-%E8%AF%A6%E8%A7%A3.assets/uart.gif" alt="UART 原理示意图"></p>
+<hr>
+<h3 id="2-UART-数据帧结构"><a href="#2-UART-数据帧结构" class="headerlink" title="2. UART 数据帧结构"></a>2. UART 数据帧结构</h3><p>典型 UART 帧包含：</p>
+<ul>
+<li><strong>起始位（Start Bit）</strong></li>
+<li><strong>数据位（5~9 位，LSB 先发）</strong></li>
+<li><strong>校验位（可选）</strong></li>
+<li><strong>停止位（1 或 2 位）</strong></li>
+</ul>
+<hr>
+<h3 id="3-UART-工作过程"><a href="#3-UART-工作过程" class="headerlink" title="3. UART 工作过程"></a>3. UART 工作过程</h3><ol>
+<li>空闲时 TX 保持高电平  </li>
+<li>起始位拉低，接收端开始采样  </li>
+<li>按波特率读取数据位  </li>
+<li>校验位用于简单错误检测  </li>
+<li>停止位结束本帧数据</li>
+</ol>
+<blockquote>
+<p>常见波特率：9600、19200、38400、57600、115200<br>双方误差一般需小于 <strong>±10%</strong></p>
+</blockquote>
+<hr>
+<h3 id="4-UART-的优缺点与应用"><a href="#4-UART-的优缺点与应用" class="headerlink" title="4. UART 的优缺点与应用"></a>4. UART 的优缺点与应用</h3><h4 id="✅-优点-2"><a href="#✅-优点-2" class="headerlink" title="✅ 优点"></a>✅ 优点</h4><ul>
+<li>硬件简单，仅需 2 根线</li>
+<li>无需时钟，系统灵活</li>
+<li>支持校验位</li>
+</ul>
+<h4 id="❌-缺点-2"><a href="#❌-缺点-2" class="headerlink" title="❌ 缺点"></a>❌ 缺点</h4><ul>
+<li>不适合多设备总线结构</li>
+<li>传输速率有限</li>
+<li>对波特率一致性敏感</li>
+</ul>
+<h4 id="📌-典型应用-2"><a href="#📌-典型应用-2" class="headerlink" title="📌 典型应用"></a>📌 典型应用</h4><ul>
+<li>MCU 与 PC 串口通信</li>
+<li>GPS 模块</li>
+<li>工业设备调试接口</li>
+<li>RS-232 &#x2F; RS-485 通信系统</li>
+</ul>
+<hr>
+<h2 id="四、I2C-SPI-UART-对比分析"><a href="#四、I2C-SPI-UART-对比分析" class="headerlink" title="四、I2C &#x2F; SPI &#x2F; UART 对比分析"></a>四、I2C &#x2F; SPI &#x2F; UART 对比分析</h2><p><img src="/imgs/I2C%E3%80%81SPI%E3%80%81UART-%E8%AF%A6%E8%A7%A3.assets/wiredConnection_lightTheme.gif" alt="接口对比"></p>
+<table>
+<thead>
+<tr>
+<th>特性</th>
+<th>I2C</th>
+<th>SPI</th>
+<th>UART</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>速度</strong></td>
+<td>中等（≤ 几 Mbps）</td>
+<td>很高（几十 Mbps）</td>
+<td>中等</td>
+</tr>
+<tr>
+<td><strong>引脚数量</strong></td>
+<td>2</td>
+<td>≥4</td>
+<td>2</td>
+</tr>
+<tr>
+<td><strong>通信方式</strong></td>
+<td>半双工</td>
+<td>全双工</td>
+<td>全双工</td>
+</tr>
+<tr>
+<td><strong>多设备支持</strong></td>
+<td>优秀</td>
+<td>一般</td>
+<td>差</td>
+</tr>
+<tr>
+<td><strong>距离</strong></td>
+<td>短</td>
+<td>短</td>
+<td>可较长</td>
+</tr>
+</tbody></table>
+<hr>
+<h2 id="五、协议选型建议"><a href="#五、协议选型建议" class="headerlink" title="五、协议选型建议"></a>五、协议选型建议</h2><ol>
+<li><strong>追求高速 → SPI</strong></li>
+<li><strong>多设备、少引脚 → I2C</strong></li>
+<li><strong>远距离、调试、简单通信 → UART</strong></li>
+<li><strong>需要全双工 → SPI &#x2F; UART</strong></li>
+<li><strong>资源受限 MCU → I2C &#x2F; UART</strong></li>
+</ol>
+<hr>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><p>I2C、SPI 与 UART 各自代表了 <strong>不同设计取舍下的通信哲学</strong>：</p>
+<ul>
+<li><strong>I2C</strong>：省引脚、结构清晰，适合系统级互联  </li>
+<li><strong>SPI</strong>：速度至上，适合高性能数据传输  </li>
+<li><strong>UART</strong>：简单可靠，是调试与远距离通信的常青树</li>
+</ul>
+<p>在嵌入式系统中，真正的能力并不在于“会不会用”，而在于 <strong>是否能在合适的场景选用合适的协议</strong>。</p>
+<p>建议在项目中多做实验与对比，这将极大提升你对系统架构与通信设计的理解。</p>
+<p>🚀 <strong>通信，是一切系统协同的基础。</strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="https://nexcooldesign.github.io">Lee</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="https://nexcooldesign.github.io/2026/01/20/917ba16ece48/">https://nexcooldesign.github.io/2026/01/20/917ba16ece48/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="https://nexcooldesign.github.io" target="_blank">Nexcool Design</a>！</span></div></div><div class="tag_share"><div class="post-share"><div class="social-share" data-image="/imgs/avatar.jpg"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2026/01/20/4780772f0d76/" title="C/C++ 中的 static 与 inline 关键字"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">C/C++ 中的 static 与 inline 关键字</div></div><div class="info-2"><div class="info-item-1"> [!IMPORTANT]  头文件里不能单独出现 static 关键字，包括 static 变量和 static 函数，但可以有static inline 函数的声明实现。 源文件里建议不要使用局部static变量，尽量使用全局static变量。 inline 不要单独使用，前面必须加上static，且声明和实现必须放在一起。   为什么头文件里不要出现 static 变量？将static变量放到头文件里，想表达的含义或许是所有源文件都能使用同一个静态变量，但这是错误的理解。static 变量的作用域只限制与定义它的源文件中，其他源文件不能访问。如果头文件中有static变量，由于不同源文件中的 static 变量可以同名，那么在所有包含该头文件的源文件中都定义了仅自己可见的 static 变量，不同源文件中使用的也是仅属于自己的 static 变量，绝不是同一个。这样做还会让源文件不清楚有哪些属于自己的static变量，程序逻辑十分混乱。因此正确的做法是杜绝在头文件中出现static变量，在源文件中定义仅自己可见的static变量。 为什么头文件里不要出现 static 函数...</div></div></div></a></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/imgs/avatar.jpg" onerror="this.onerror=null;this.src='/imgs/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Lee</div><div class="author-info-description">日常开发过程中的笔记</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">3</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">2</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">2</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/NexcoolDesign"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/NexcoolDesign" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="mailto:1479003073@qq.com" target="_blank" title="Email"><i class="fas fa-envelope" style="color: #4a7dbe;"></i></a></div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content is-expand"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#I2C%E3%80%81SPI%E3%80%81UART-%E9%80%9A%E4%BF%A1%E5%8D%8F%E8%AE%AE%E8%AF%A6%E8%A7%A3"><span class="toc-number">1.</span> <span class="toc-text">I2C、SPI、UART 通信协议详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%80%E3%80%81I2C-%E5%8D%8F%E8%AE%AE%EF%BC%88Inter-Integrated-Circuit%EF%BC%89"><span class="toc-number">1.1.</span> <span class="toc-text">一、I2C 协议（Inter-Integrated Circuit）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86"><span class="toc-number">1.1.1.</span> <span class="toc-text">1. 基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-I2C-%E7%9A%84%E8%AF%BB%E5%86%99%E6%B5%81%E7%A8%8B"><span class="toc-number">1.1.2.</span> <span class="toc-text">2. I2C 的读写流程</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#2-1-%E8%AF%BB%E6%93%8D%E4%BD%9C%EF%BC%88Slave-%E2%86%92-Master%EF%BC%89"><span class="toc-number">1.1.2.1.</span> <span class="toc-text">2.1 读操作（Slave → Master）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-2-%E5%86%99%E6%93%8D%E4%BD%9C%EF%BC%88Master-%E2%86%92-Slave%EF%BC%89"><span class="toc-number">1.1.2.2.</span> <span class="toc-text">2.2 写操作（Master → Slave）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-I2C-%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9%E4%B8%8E%E5%BA%94%E7%94%A8"><span class="toc-number">1.1.3.</span> <span class="toc-text">3. I2C 的优缺点与应用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%9C%85-%E4%BC%98%E7%82%B9"><span class="toc-number">1.1.3.1.</span> <span class="toc-text">✅ 优点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%9D%8C-%E7%BC%BA%E7%82%B9"><span class="toc-number">1.1.3.2.</span> <span class="toc-text">❌ 缺点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%93%8C-%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8"><span class="toc-number">1.1.3.3.</span> <span class="toc-text">📌 典型应用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%8C%E3%80%81SPI-%E5%8D%8F%E8%AE%AE%EF%BC%88Serial-Peripheral-Interface%EF%BC%89"><span class="toc-number">1.2.</span> <span class="toc-text">二、SPI 协议（Serial Peripheral Interface）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86-1"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. 基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-SPI-%E9%80%9A%E4%BF%A1%E6%B5%81%E7%A8%8B"><span class="toc-number">1.2.2.</span> <span class="toc-text">2. SPI 通信流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-SPI-%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9%E4%B8%8E%E5%BA%94%E7%94%A8"><span class="toc-number">1.2.3.</span> <span class="toc-text">3. SPI 的优缺点与应用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%9C%85-%E4%BC%98%E7%82%B9-1"><span class="toc-number">1.2.3.1.</span> <span class="toc-text">✅ 优点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%9D%8C-%E7%BC%BA%E7%82%B9-1"><span class="toc-number">1.2.3.2.</span> <span class="toc-text">❌ 缺点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%93%8C-%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8-1"><span class="toc-number">1.2.3.3.</span> <span class="toc-text">📌 典型应用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%89%E3%80%81UART-%E5%8D%8F%E8%AE%AE%EF%BC%88Universal-Asynchronous-Receiver-Transmitter%EF%BC%89"><span class="toc-number">1.3.</span> <span class="toc-text">三、UART 协议（Universal Asynchronous Receiver &#x2F; Transmitter）</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86-2"><span class="toc-number">1.3.1.</span> <span class="toc-text">1. 基本原理</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-UART-%E6%95%B0%E6%8D%AE%E5%B8%A7%E7%BB%93%E6%9E%84"><span class="toc-number">1.3.2.</span> <span class="toc-text">2. UART 数据帧结构</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-UART-%E5%B7%A5%E4%BD%9C%E8%BF%87%E7%A8%8B"><span class="toc-number">1.3.3.</span> <span class="toc-text">3. UART 工作过程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-UART-%E7%9A%84%E4%BC%98%E7%BC%BA%E7%82%B9%E4%B8%8E%E5%BA%94%E7%94%A8"><span class="toc-number">1.3.4.</span> <span class="toc-text">4. UART 的优缺点与应用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%9C%85-%E4%BC%98%E7%82%B9-2"><span class="toc-number">1.3.4.1.</span> <span class="toc-text">✅ 优点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E2%9D%8C-%E7%BC%BA%E7%82%B9-2"><span class="toc-number">1.3.4.2.</span> <span class="toc-text">❌ 缺点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%F0%9F%93%8C-%E5%85%B8%E5%9E%8B%E5%BA%94%E7%94%A8-2"><span class="toc-number">1.3.4.3.</span> <span class="toc-text">📌 典型应用</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9B%9B%E3%80%81I2C-SPI-UART-%E5%AF%B9%E6%AF%94%E5%88%86%E6%9E%90"><span class="toc-number">1.4.</span> <span class="toc-text">四、I2C &#x2F; SPI &#x2F; UART 对比分析</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BA%94%E3%80%81%E5%8D%8F%E8%AE%AE%E9%80%89%E5%9E%8B%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.5.</span> <span class="toc-text">五、协议选型建议</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E8%AF%AD"><span class="toc-number">1.6.</span> <span class="toc-text">结语</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/20/917ba16ece48/" title="I2C、SPI、UART 详解">I2C、SPI、UART 详解</a><time datetime="2026-01-20T15:16:20.000Z" title="发表于 2026-01-20 23:16:20">2026-01-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2026/01/20/4780772f0d76/" title="C/C++ 中的 static 与 inline 关键字">C/C++ 中的 static 与 inline 关键字</a><time datetime="2026-01-20T02:23:52.000Z" title="发表于 2026-01-20 10:23:52">2026-01-20</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/03/28/207face86a8e/" title="Thread 协议介绍">Thread 协议介绍</a><time datetime="2025-03-28T03:23:54.000Z" title="发表于 2025-03-28 11:23:54">2025-03-28</time></div></div></div></div></div></div></main><footer id="footer" style="background-image: url(/imgs/background.png);"><div class="footer-other"><div class="footer-copyright"><span class="copyright">&copy;&nbsp;2019 - 2026 By Lee</span></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
